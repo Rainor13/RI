@@ -148,7 +148,7 @@ public class IndexFiles {
 			Directory dir = FSDirectory.open(Paths.get(indexPath));
 			Analyzer analyzer = new StandardAnalyzer();
 			IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
-
+			IndexWriter mainWriter = new IndexWriter(dir, iwc);
 			
 			auxOpenMode(iwc, option, openmode);
 			
@@ -165,32 +165,37 @@ public class IndexFiles {
 			
 			if ((pathSplited.length == partialIndex.length) && (quantityPartialIndex != 0)){
 				for (int i = 0; i < pathSplited.length; i++) {
-				
+					Directory partialDir = FSDirectory.open(Paths.get(partialIndex[i]));
+					Analyzer partialAnalyzer = new StandardAnalyzer();
+					IndexWriterConfig partialIwc = new IndexWriterConfig(partialAnalyzer);
 					
+					auxOpenMode(partialIwc, option, openmode);
+				
+//				if (option == "create" || openmode == false) {
+//					// Create a new index in the directory, removing any
+//					// previously indexed documents:
+//					iwc.setOpenMode(OpenMode.CREATE);
+//				} else if (option == "append") {
+//					iwc.setOpenMode(OpenMode.APPEND);
+//				} else if (option == "create_or_append") {
+//					// Add new documents to an existing index:
+//					iwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
+//				}
+					
+					IndexWriter writer = new IndexWriter(partialDir, partialIwc);
+					indexDocs(writer, Paths.get(pathSplited[i]), numThreads);
+					writer.close();
+					mainWriter.addIndexes(partialDir);
 				}
 				
+			} else {
+				for (int i = 0; i < pathSplited.length; i++) {
+					indexDocs(mainWriter, Paths.get(pathSplited[i]), numThreads);
+				}
 			}
 
-			// Optional: for better indexing performance, if you
-			// are indexing many documents, increase the RAM
-			// buffer. But if you do this, increase the max heap
-			// size to the JVM (eg add -Xmx512m or -Xmx1g):
-			//
-			// iwc.setRAMBufferSizeMB(256.0);
-
-			IndexWriter writer = new IndexWriter(dir, iwc);
-			indexDocs(writer, docDir, numThreads);
-
-			// NOTE: if you want to maximize search performance,
-			// you can optionally call forceMerge here. This can be
-			// a terribly costly operation, so generally it's only
-			// worth it when your index is relatively static (ie
-			// you're done adding documents to it):
-			//
-			// writer.forceMerge(1);
-
-			writer.close();
-
+			mainWriter.close();
+			
 			Date end = new Date();
 			System.out.println(end.getTime() - start.getTime() + " total milliseconds");
 
