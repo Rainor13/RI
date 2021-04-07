@@ -1,6 +1,6 @@
  
-docs= /home/rainor/Escritorio/RI/ejemplosLucene8.1.1/mri-indexer/Docs/ /home/rainor/Escritorio/RI/ejemplosLucene8.1.1/mri-indexer/Docs2/
-partialIndexes= /home/rainor/Escritorio/RI/ejemplosLucene8.1.1/Movida1 /home/rainor/Escritorio/RI/ejemplosLucene8.1.1/Movida12
+docs= /home/rainor/Escritorio/RI/ejemplosLucene8.1.1/mri-indexer/Docs/ /home/rainor/Escritorio/RI/ejemplosLucene8.1.1/mri-indexer/Docs2/ /home/rainor/Escritorio/RI/ejemplosLucene8.1.1/mri-indexer/Docs3/
+partialIndexes= /home/rainor/Escritorio/RI/ejemplosLucene8.1.1/Movida1 /home/rainor/Escritorio/RI/ejemplosLucene8.1.1/Movida12 /home/rainor/Escritorio/RI/ejemplosLucene8.1.1/Movida 3/
 onlyFiles= .java .c .txt .odt .doc .pdf
-onlyTopLines=1
+onlyTopLines=
 onlyBottomLines=

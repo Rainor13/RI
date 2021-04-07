@@ -19,6 +19,7 @@ package es.udc.fi.ri.mri_indexer;
 
 
 import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
@@ -47,9 +48,11 @@ import org.apache.lucene.analysis.standard.StandardAnalyzer;
 import org.apache.lucene.document.DateTools;
 import org.apache.lucene.document.Document;
 import org.apache.lucene.document.Field;
+import org.apache.lucene.document.FieldType;
 import org.apache.lucene.document.LongPoint;
 import org.apache.lucene.document.StringField;
 import org.apache.lucene.document.TextField;
+import org.apache.lucene.index.IndexOptions;
 import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.index.IndexWriterConfig.OpenMode;
@@ -79,9 +82,103 @@ public class IndexFiles {
 		}
 	}
 	
-	public static void readLines (String onlyTopLines, String onlyBottomLines) {
+	public static String readLines (InputStream stream) throws IOException {
 		
+		String line;
+		//String contents = new String();
+		StringBuilder contents = new StringBuilder();
+		BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8));
 		
+		while((line = reader.readLine()) != null) {
+			contents.append(line);
+		}
+		
+		reader.close();
+		return contents.toString();
+	}
+	
+	public static String readLinesBotAndTop (int topLines, int bottomLines, InputStream stream) throws IOException {
+		
+		ArrayList<String> linesOfFile = new ArrayList<String>();
+		String line;
+		StringBuilder contents = new StringBuilder();
+		BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8));
+		
+		while((line = reader.readLine()) != null) {
+			linesOfFile.add(line);
+		}
+		
+		int lines = linesOfFile.size() - bottomLines;
+		
+		for (int i = 0; i < topLines; i++) {
+			if (reader.readLine() != null)
+				contents.append(linesOfFile.get(i));
+		}
+		for (int i = lines; i < linesOfFile.size(); i++) {
+			contents.append(linesOfFile.get(i));
+		}
+		
+		//contents.append(line);
+//		for (int i = 0; (i < topLines) && (linesOfFile.size() >= topLines); i++) {
+//			
+//		}
+//		for (int i = 0; (i < linesOfFile.size()) && (linesOfFile.size() >= bottomLines); i++) {
+//			if (i >= linesOfFile.size()-bottomLines) {
+//				contents.append(linesOfFile.get(i));
+//			}
+//		}
+		
+		reader.close();
+		return contents.toString();
+	}
+	
+	public static String readLinesTopOnly (int topLines, InputStream stream) throws IOException {
+		
+		ArrayList<String> linesOfFile = new ArrayList<String>();
+		String line;
+		StringBuilder contents = new StringBuilder();
+		BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8));
+		
+		while((line = reader.readLine()) != null) {
+			linesOfFile.add(line);
+		}
+		
+//		for (int i = 0; (i < topLines) && (linesOfFile.size() >= topLines); i++) {
+//			contents.append(linesOfFile.get(i));
+//		}
+		for (int i = 0; i < topLines; i++) {
+			if (reader.readLine() != null)
+				contents.append(linesOfFile.get(i));
+		}
+		
+		reader.close();
+		return contents.toString();
+	}
+	
+	public static String readLinesBotOnly (int bottomLines, InputStream stream) throws IOException {
+		
+		ArrayList<String> linesOfFile = new ArrayList<String>();
+		String line;
+		StringBuilder contents = new StringBuilder();
+		BufferedReader reader = new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8));
+		
+		while((line = reader.readLine()) != null) {
+			linesOfFile.add(line);
+		}
+		
+		int lines = linesOfFile.size() - bottomLines;
+		
+//		for (int i = 0; (i < linesOfFile.size()) && (linesOfFile.size() >= bottomLines); i++) {
+//			if (i >= linesOfFile.size()-bottomLines) {
+//				contents.append(linesOfFile.get(i));
+//			}
+//		}
+		for (int i = lines; i < linesOfFile.size(); i++) {
+			contents.append(linesOfFile.get(i));
+		}
+		
+		reader.close();
+		return contents.toString();
 	}
 
 	private IndexFiles() {
@@ -275,16 +372,52 @@ public class IndexFiles {
 			Document doc = new Document();
 			
 			Field pathField = new StringField("path", file.toString(), Field.Store.YES);
+			FieldType contentFieldType = new FieldType(StringField.TYPE_STORED);
 
+			String contents = new String();
 			
+			//System.out.println("top STRING " + onlyTopLines);
+			//System.out.println("bot STRING " + onlyBottomLines + ". A");
+			
+			if ((!onlyTopLines.isEmpty()) && (!onlyBottomLines.isEmpty())) {
+				System.out.print("TOP Y BOT");
+				int topLines = Integer.parseInt(onlyTopLines);
+				int bottomLines = Integer.parseInt(onlyBottomLines);
+				contents = readLinesBotAndTop(topLines, bottomLines, stream);
+			} else if ((!onlyTopLines.isEmpty()) && (onlyBottomLines.isEmpty())) {
+				System.out.print("TOP");
+				int topLines = Integer.parseInt(onlyTopLines);
+				contents = readLinesTopOnly(topLines, stream);
+			} else if ((onlyTopLines.isEmpty()) && (!onlyBottomLines.isEmpty())) {
+				System.out.print("BOT");
+				int bottomLines = Integer.parseInt(onlyBottomLines);
+				contents = readLinesBotOnly(bottomLines, stream);
+			} else {
+				contents = readLines(stream);
+
+			}
+			InputStream movida = new ByteArrayInputStream(contents.getBytes());
+			
+			//System.out.println("top " + topLines);
+			//System.out.println("bot " + bottomLines);
+//			if (topLines != null) {
+//				readLines(topLinesStr, bottomLinesStr, topLines, bottomLines, stream);
+//			}else {
+//				
+//			}
+			//System.out.println("nepe");
 			
 			doc.add(pathField);
 
-
 			doc.add(new LongPoint("modified", lastModified));
 
-			doc.add(new TextField("contents",
-					new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))));
+			//doc.add(new TextField("contents", new BufferedReader(new InputStreamReader(stream, StandardCharsets.UTF_8))));
+			
+			doc.add(new TextField("contents", new BufferedReader(new InputStreamReader(movida, StandardCharsets.UTF_8))));
+			
+			//doc.add(new Field("contents",contents, contentFieldType));
+		
+			//doc.add(new StringField("contents", contents, Field.Store.YES));
 			
 			doc.add(new StringField("hostname", InetAddress.getLocalHost().getHostName(), Field.Store.YES));
 			
@@ -326,6 +459,7 @@ public class IndexFiles {
 			
 			doc.add(new StringField("creationTimeLucene",  lastModifiedTimeLucene, Field.Store.YES));
 			
+			System.out.print(writer.getConfig().getOpenMode());
 			
 			if (writer.getConfig().getOpenMode() == OpenMode.CREATE) {
 				// New index, so we just add the document (no old document can be there):
