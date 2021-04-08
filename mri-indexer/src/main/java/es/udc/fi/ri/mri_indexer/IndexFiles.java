@@ -70,14 +70,16 @@ public class IndexFiles {
 	
 	public static void auxOpenMode (IndexWriterConfig iwc, String option, boolean openmode) {
 		
-		if (option == "create" || openmode == false) {
+		if ((option.trim().equals("create") || openmode == false)) {
 			// Create a new index in the directory, removing any
 			// previously indexed documents:
+			System.out.println("ESTOY AQUI");
 			iwc.setOpenMode(OpenMode.CREATE);
-		} else if (option == "append") {
+		} else if (option.trim().equals("append")) {
 			iwc.setOpenMode(OpenMode.APPEND);
-		} else if (option == "create_or_append") {
+		} else if (option.trim().equals("create_or_append")) {
 			// Add new documents to an existing index:
+			System.out.println("NO ESTOY AQUI");
 			iwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
 		}
 	}
@@ -261,15 +263,54 @@ public class IndexFiles {
 			IndexWriterConfig iwc = new IndexWriterConfig(analyzer);
 			IndexWriter mainWriter = new IndexWriter(dir, iwc);
 			
-			auxOpenMode(iwc, option, openmode);
+			//System.out.println(option);
 			
+			//System.out.println("VOY A ENTRAR");
+			auxOpenMode(iwc, option, openmode);
+			//System.out.println("PASE POR AQUI");
+			
+//			if ((option.trim().equals("create") || openmode == false)) {
+//				// Create a new index in the directory, removing any
+//				// previously indexed documents:
+//				System.out.println("ESTOY AQUI");
+//				iwc.setOpenMode(OpenMode.CREATE);
+//			} else if (option.trim().equals("append")) {
+//				iwc.setOpenMode(OpenMode.APPEND);
+//			} else if (option.trim().equals("create_or_append")) {
+//				// Add new documents to an existing index:
+//				System.out.println("NO ESTOY AQUI");
+//				iwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
+//			}
+			
+//			System.out.println(pathSplited.length);
+//			System.out.println(partialIndex.length);
+//			for (int i = 0; i < partialIndex.length; i++) {
+//				System.out.println(partialIndex[i]);
+//			}
+//			
 			if ((pathSplited.length == partialIndex.length) && (quantityPartialIndex != 0)){
 				for (int i = 0; i < pathSplited.length; i++) {
 					Directory partialDir = FSDirectory.open(Paths.get(partialIndex[i]));
 					Analyzer partialAnalyzer = new StandardAnalyzer();
 					IndexWriterConfig partialIwc = new IndexWriterConfig(partialAnalyzer);
 					
+					//System.out.println(option);
+					//System.out.println("VOY A ENTRAR");
 					auxOpenMode(partialIwc, option, openmode);
+					//System.out.println("YA SALI DE AQUI");
+			
+//					if ((option.trim().equals("create") || openmode == false)) {
+//						// Create a new index in the directory, removing any
+//						// previously indexed documents:
+//						System.out.println("ESTOY AQUI");
+//						partialIwc.setOpenMode(OpenMode.CREATE);
+//					} else if (option.trim().equals("append")) {
+//						partialIwc.setOpenMode(OpenMode.APPEND);
+//					} else if (option.trim().equals("create_or_append")) {
+//						// Add new documents to an existing index:
+//						System.out.println("NO ESTOY AQUI");
+//						partialIwc.setOpenMode(OpenMode.CREATE_OR_APPEND);
+//					}
 					
 					IndexWriter writer = new IndexWriter(partialDir, partialIwc);
 					indexDocs(writer, Paths.get(pathSplited[i]), numThreads, onlyFiles, onlyTopLines, onlyBottomLines);
@@ -440,7 +481,7 @@ public class IndexFiles {
 			atime1.setTimeInMillis(attr.creationTime().toMillis());
 			Date atimeAsDate1 = atime1.getTime();
 			String creationTimeLucene = DateTools.dateToString(atimeAsDate1, DateTools.Resolution.MINUTE);
-			System.out.println(creationTimeLucene);
+			//System.out.println(creationTimeLucene);
 			//doc.add(new StringField("lastModTime", FileTime.toString(Files.getLastModifiedTime((file))), Field.Store.YES));
 			
 			doc.add(new StringField("creationTimeLucene",  creationTimeLucene, Field.Store.YES));
