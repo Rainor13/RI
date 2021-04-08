@@ -1,2 +1,5 @@
  
 java -jar target/mri-indexer-0.0.1-SNAPSHOT.jar 
+
+
+-index Index -docs Docs -update -openmode create  -numThreads 2
